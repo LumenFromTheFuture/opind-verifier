@@ -1,0 +1,10 @@
+{
+    "endpoints": [
+        {
+            "label": "mainnet.base.org",
+            "operator_id": "base",
+            "url": "https://mainnet.base.org"
+        }
+    ],
+    "min_endpoints": 2
+}

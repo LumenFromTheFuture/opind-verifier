@@ -1,0 +1,15 @@
+{
+    "endpoints": [
+        {
+            "label": "mainnet.base.org",
+            "operator_id": "base",
+            "url": "https://mainnet.base.org"
+        },
+        {
+            "label": "base.drpc.org",
+            "operator_id": "drpc",
+            "url": "https://base.drpc.org"
+        }
+    ],
+    "min_endpoints": 2
+}
