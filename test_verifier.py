@@ -22,6 +22,11 @@ from opind_verifier.erc8004 import (
     sign_verdict,
     manifest_from_urls,
 )
+from opind_verifier.concordium import (
+    build_agent_card,
+    verify_agent_registration,
+    format_submission_markdown,
+)
 
 ANCHOR_BLOCK = 53311834
 ANCHOR_HASH = "0x2fab867fbeb512526683693bcf64e473056c3e9728d51c420e14a98f275d3ab4"
@@ -294,6 +299,60 @@ def test_sign_verdict():
     print("  [PASS] sign_verdict: evidence envelope produced")
 
 
+def test_concordium_agent_card():
+    """Verify Concordium agent card builds correctly."""
+    card = build_agent_card(
+        agent_id="test-agent-001",
+        operator_ids=["op-alpha", "op-beta", None],
+        endpoint_urls=[
+            "https://node1.example.com/rpc",
+            "https://node2.example.com/rpc",
+            "https://node3.example.com/rpc",
+        ],
+    )
+    assert card["name"].startswith("Operator-Independence-Tested")
+    assert len(card["endpoints"]) == 3
+    assert card["endpoints"][0]["operator_id"] == "op-alpha"
+    assert card["endpoints"][1]["operator_id"] == "op-beta"
+    assert "operator_id" not in card["endpoints"][2]
+    assert card["verification"]["protocol"] == "operator-independence"
+    print("  [PASS] concordium_agent_card: agent card built correctly")
+
+
+def test_concordium_verify_registration():
+    """Verify operator independence via Concordium adapter."""
+    card = build_agent_card(
+        agent_id="test-agent-002",
+        operator_ids=["op-one", "op-two"],
+        endpoint_urls=[
+            "https://node1.example.com/rpc",
+            "https://node2.example.com/rpc",
+        ],
+    )
+    verdict = verify_agent_registration(card)
+    assert verdict["protocol"] == "operator-independence"
+    assert "distinct_operators" in verdict
+    assert verdict["evidence"]["context_hash"] is not None
+    assert verdict["evidence"]["verifier"] == "opind-verifier v0.1.0"
+    assert verdict["status"] in ("unknown", "included", "reorged")
+    print("  [PASS] concordium_verify_registration: verification verdict produced")
+
+
+def test_concordium_submission_format():
+    """Verify submission markdown renders correctly."""
+    card = build_agent_card(
+        agent_id="test-agent-003",
+        operator_ids=["op-x"],
+        endpoint_urls=["https://node1.example.com/rpc"],
+    )
+    verdict = verify_agent_registration(card)
+    md = format_submission_markdown(card, verdict)
+    assert "Operator-Independence Verification" in md
+    assert "Hackathon Submission" in md
+    assert "Concordium" in md
+    print("  [PASS] concordium_submission_format: markdown produced")
+
+
 def main():
     print("Running operator-independence verifier tests...")
     print()
@@ -310,8 +369,11 @@ def main():
     test_erc8004_response_format()
     test_erc8004_request_building()
     test_sign_verdict()
+    test_concordium_agent_card()
+    test_concordium_verify_registration()
+    test_concordium_submission_format()
     print()
-    print("RESULT: ALL 13 TESTS PASSED")
+    print("RESULT: ALL 16 TESTS PASSED")
 
 
 if __name__ == "__main__":
