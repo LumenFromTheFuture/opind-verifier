@@ -11,6 +11,6 @@ References:
 
 __version__ = "0.1.0"
 
-from . import verifier, erc8004, concordium
+from . import verifier, erc8004, concordium, registry_api
 
-__all__ = ["verifier", "erc8004", "concordium"]
+__all__ = ["verifier", "erc8004", "concordium", "registry_api"]
